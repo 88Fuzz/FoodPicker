@@ -115,3 +115,17 @@ void mergeLists(FoodPlace **destList, FoodPlace *srcList)
         insertNodeInFront(destList, tmp);
     }
 }
+/*
+ * Given list, return the number of nodes in the list
+ */
+int getSizeOfList(FoodPlace *list)
+{
+    int count=0;
+    while(list != NULL)
+    {
+        count++;
+        list = list->next;
+    }
+
+    return count;
+}

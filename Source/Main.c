@@ -124,15 +124,12 @@ void *foodPickerMain(void *clientSocket)
                 case GENERATE_CHOICE:
                     pthread_mutex_lock(&g_lock);
                     winner = calculateWinner(&g_foodList, g_numOptions);
-                    if(winner == NULL)
-                    {
-                        printf("NULL WAS RETURNED\n");
-                    }
                     secondaryWinner = calculateSecondaryWinner(&g_foodList, winner);
                     winner->coolDown = 0;
                     insertNodeInFront(&timeoutPlaces, winner);
                     incrementCoolDownTimer(timeoutPlaces);
                     readyPlaces = getReadyFoodPlaces(timeoutPlaces);
+                    g_numOptions += getSizeOfList(readyPlaces);
                     mergeLists(&g_foodList, readyPlaces);
                     insertInHistory(&g_historyList, g_historyNodes, winner, &g_historyCount);
 

@@ -7,5 +7,6 @@ void removeNode(FoodPlace **, FoodPlace *);
 void insertNodeInFront(FoodPlace **, FoodPlace *);
 void insertNodeInBack(FoodPlace **, FoodPlace *);
 void mergeLists(FoodPlace **, FoodPlace *);
+int getSizeOfList(FoodPlace *);
 
 #endif
