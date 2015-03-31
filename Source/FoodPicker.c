@@ -166,7 +166,7 @@ void helpCommand(int socket, char *args)
     sendMessage(socket, "\nCOMMANDS\n");
     for(j=0; j<COMMAND_COUNT; j++)
     {
-        currCommand = commands[j];
+        currCommand = g_commands[j];
         sprintf(buffer, "%s | %s\n", currCommand.shortCommand, currCommand.longCommand);
         sendMessage(socket, buffer);
         sprintf(buffer, "   %s\n", currCommand.description);
@@ -177,7 +177,7 @@ void helpCommand(int socket, char *args)
 void invalidCommand(int socket, char *args)
 {
     char buffer[STRING_LENGTH*2];
-    sprintf(buffer, " Unknown command: %s\n", args);
+    sprintf(buffer, "Unknown command: %s\n", args);
     sendMessage(socket, buffer);
 }
 

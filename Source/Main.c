@@ -22,23 +22,29 @@ int main(int argc, char** argv)
     char filename[STRING_LENGTH];
     char userInput[STRING_LENGTH];
     int serverSize;
+    int port = PORT;
 
-    if(argc != 2)
+    if(argc < 2)
     {
-        fprintf(stderr, "%s <input file>\n", argv[0]);
+        fprintf(stderr, "%s <input file> <port>\n", argv[0]);
         return 1;
     }
+    
+    if(argc == 3)
+        port = atoi(argv[2]);
 
     strcpy(filename, argv[1]);
-    if((numOptions = getFoodOptions(filename, foodOptions))<=0)
+    if((g_numOptions = getFoodOptions(filename, g_foodOptions))<=0)
     {
         fprintf(stderr, "Error reading %s\n", filename);
         return 1;
     }
+
     srand(time(NULL));
-    foodList = &foodOptions[0];
-    historyCount = 0;
-    historyList = NULL;
+    g_foodList = &g_foodOptions[0];
+    g_historyCount = 0;
+    g_historyList = NULL;
+    pthread_mutex_init(&g_lock, NULL);
 
     //Initialize socket
     if((listeningSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -48,7 +54,7 @@ int main(int argc, char** argv)
     }
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(PORT);
+    server.sin_port = htons(port);
 
     if(bind(listeningSocket, (struct sockaddr *)&server, sizeof(server)) < 0)
     {
@@ -59,7 +65,7 @@ int main(int argc, char** argv)
     //Allow for three pending connections at a time
     listen(listeningSocket, 3);
 
-    printf("Listening on port %d\n", PORT);
+    printf("Listening on port %d\n", port);
     serverSize = sizeof(struct sockaddr_in);
     while((newSocket = accept(listeningSocket, (struct sockaddr *)&client, &serverSize)) > 0)
     {
@@ -116,14 +122,19 @@ void *foodPickerMain(void *clientSocket)
             switch(userCommand.type)
             {
                 case GENERATE_CHOICE:
-                    winner = calculateWinner(&foodList, numOptions);
-                    secondaryWinner = calculateSecondaryWinner(&foodList, winner);
+                    pthread_mutex_lock(&g_lock);
+                    winner = calculateWinner(&g_foodList, g_numOptions);
+                    if(winner == NULL)
+                    {
+                        printf("NULL WAS RETURNED\n");
+                    }
+                    secondaryWinner = calculateSecondaryWinner(&g_foodList, winner);
                     winner->coolDown = 0;
                     insertNodeInFront(&timeoutPlaces, winner);
                     incrementCoolDownTimer(timeoutPlaces);
                     readyPlaces = getReadyFoodPlaces(timeoutPlaces);
-                    mergeLists(&foodList, readyPlaces);
-                    insertInHistory(&historyList, historyNodes, winner, &historyCount);
+                    mergeLists(&g_foodList, readyPlaces);
+                    insertInHistory(&g_historyList, g_historyNodes, winner, &g_historyCount);
 
                     sprintf(buffer, "%s%s\n", "You should eat at ", winner->name);
                     sendMessage(socket, buffer);
@@ -132,7 +143,8 @@ void *foodPickerMain(void *clientSocket)
                         sprintf(buffer, "%s%s\n", "With a secondary location of ", secondaryWinner->name);
                         sendMessage(socket, buffer);
                     }
-                    numOptions--;
+                    g_numOptions--;
+                    pthread_mutex_unlock(&g_lock);
                     break;
                 case QUIT:
                     sprintf(buffer, "%s\n", "GoodBye");
@@ -140,7 +152,9 @@ void *foodPickerMain(void *clientSocket)
                     processInput = 0;
                     break;
                 case HISTORY:
-                    printHistory(socket, historyList);
+                    pthread_mutex_lock(&g_lock);
+                    printHistory(socket, g_historyList);
+                    pthread_mutex_unlock(&g_lock);
                     break;
                 default:
                     userCommand.function(socket, userInput);

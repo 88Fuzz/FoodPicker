@@ -61,14 +61,17 @@ Command parseUserInput(char *userInput)
     int inputLen = strlen(userInput);
     int j;
 
+    if(inputLen == 0)
+        return g_commands[COMMAND_COUNT];
+
     for(j=0; j<COMMAND_COUNT; j++)
     {
-        if(strncmp(commands[j].shortCommand, userInput, inputLen) == 0 
-           || strncmp(commands[j].longCommand, userInput, inputLen) == 0)
-            return commands[j];
+        if(strncmp(g_commands[j].longCommand, userInput, inputLen) == 0
+           || strncmp(g_commands[j].shortCommand, userInput, inputLen) == 0)
+            return g_commands[j];
     }
 
-    return commands[COMMAND_COUNT];
+    return g_commands[COMMAND_COUNT];
 }
 
 void printWelcome(int socket)

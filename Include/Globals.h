@@ -2,13 +2,15 @@
 #define __GLOBALS_H__
 #include "Types.h"
 #include "Constants.h"
+#include <pthread.h>
 
-extern Command commands[COMMAND_COUNT];
-extern FoodPlace foodOptions[FOOD_LENGTH];
-extern FoodPlace historyNodes[FOOD_LENGTH];
-extern FoodPlace *foodList;
-extern FoodPlace *historyList;
-extern int numOptions;
-extern int historyCount;
+extern Command g_commands[COMMAND_COUNT];
+extern FoodPlace g_foodOptions[FOOD_LENGTH];
+extern FoodPlace g_historyNodes[FOOD_LENGTH];
+extern FoodPlace *g_foodList;
+extern FoodPlace *g_historyList;
+extern int g_numOptions;
+extern int g_historyCount;
+extern pthread_mutex_t g_lock;
 
 #endif
